@@ -1,0 +1,30 @@
+# Terraform state & secrets – NEVER commit these
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.tfvars
+!terraform.tfvars.example
+
+# Crash logs
+crash.log
+
+# Sensitive or generated files
+*.pem
+*.key
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# OS & editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Plan files
+*.tfplan

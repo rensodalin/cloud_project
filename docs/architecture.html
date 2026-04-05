@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS Architecture Diagram – Cloud Project</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --muted: #8b949e;
+      --aws-orange: #FF9900;
+      --aws-blue: #232F3E;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --purple: #bc8cff;
+      --red: #f85149;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--aws-orange);
+      margin-bottom: .3rem;
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: .95rem;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── DIAGRAM CANVAS ── */
+    .diagram {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ── LAYER SECTIONS ── */
+    .layer {
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 1.2rem 1.5rem 1.5rem;
+      margin-bottom: 1.2rem;
+      position: relative;
+    }
+    .layer-label {
+      position: absolute;
+      top: -12px;
+      left: 18px;
+      background: var(--bg);
+      padding: 0 10px;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .layer-internet { border-color: #4a90d9; }
+    .layer-internet .layer-label { color: #4a90d9; }
+
+    .layer-public { border-color: var(--aws-orange); }
+    .layer-public .layer-label { color: var(--aws-orange); }
+
+    .layer-private { border-color: var(--green); }
+    .layer-private .layer-label { color: var(--green); }
+
+    .layer-data { border-color: var(--purple); }
+    .layer-data .layer-label { color: var(--purple); }
+
+    .layer-support { border-color: var(--muted); }
+    .layer-support .layer-label { color: var(--muted); }
+
+    /* ── ROW & SERVICE BOXES ── */
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .service {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .8rem 1rem;
+      text-align: center;
+      min-width: 120px;
+      max-width: 160px;
+      flex: 1;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .service:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 24px rgba(0,0,0,.4);
+    }
+    .service .icon { font-size: 2rem; margin-bottom: .4rem; }
+    .service .name {
+      font-weight: 600;
+      font-size: .85rem;
+      color: var(--text);
+    }
+    .service .badge {
+      display: inline-block;
+      margin-top: .35rem;
+      padding: .15rem .5rem;
+      border-radius: 999px;
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+      background: rgba(255,153,0,.12);
+      color: var(--aws-orange);
+    }
+    .service .desc {
+      font-size: .7rem;
+      color: var(--muted);
+      margin-top: .3rem;
+    }
+
+    /* ── ARROWS connector ── */
+    .arrow-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin: .3rem 0;
+      color: var(--muted);
+      font-size: 1.2rem;
+    }
+    .arrow-row span { font-size: .7rem; color: var(--muted); text-align: center; }
+
+    /* ── AZ indicator ── */
+    .az-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .az-box {
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: .8rem;
+    }
+    .az-box .az-label {
+      font-size: .65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--aws-orange);
+      margin-bottom: .6rem;
+    }
+
+    /* ── Legend ── */
+    .legend {
+      max-width: 1200px;
+      margin: 1.5rem auto 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .78rem;
+      color: var(--muted);
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* ── Service list ── */
+    .services-table {
+      max-width: 1200px;
+      margin: 2.5rem auto 0;
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .services-table th, .services-table td {
+      padding: .7rem 1rem;
+      border: 1px solid var(--border);
+      font-size: .84rem;
+    }
+    .services-table th {
+      background: var(--card);
+      color: var(--aws-orange);
+      font-weight: 700;
+      text-align: left;
+    }
+    .services-table tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+    .services-table td:last-child { color: var(--muted); }
+  </style>
+</head>
+<body>
+
+  <h1>☁️ AWS Cloud Architecture</h1>
+  <p class="subtitle">Scalable, Highly-Available Web Application · us-east-1 · Deployed with Terraform</p>
+
+  <div class="diagram">
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- INTERNET LAYER                               -->
+    <!-- ════════════════════════════════════════════ -->
+    <div class="layer layer-internet">
+      <div class="layer-label">Internet</div>
+      <div class="row">
+        <div class="service">
+          <div class="icon">🌐</div>
+          <div class="name">Users / Internet</div>
+          <div class="desc">HTTP / HTTPS traffic</div>
+        </div>
+        <div class="service">
+          <div class="icon">🔗</div>
+          <div class="name">Route 53</div>
+          <div class="badge">DNS (optional)</div>
+          <div class="desc">Custom domain routing</div>
+        </div>
+        <div class="service">
+          <div class="icon">🏅</div>
+          <div class="name">ACM</div>
+          <div class="badge">TLS Cert</div>
+          <div class="desc">HTTPS certificate</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow-row">⬇ <span>Public Internet</span> ⬇</div>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- VPC wrapper                                  -->
+    <!-- ════════════════════════════════════════════ -->
+
+    <!-- PUBLIC LAYER – ALB + IGW -->
+    <div class="layer layer-public">
+      <div class="layer-label">VPC – Public Subnets (10.0.1.0/24 &amp; 10.0.2.0/24)</div>
+      <div class="az-grid">
+        <div class="az-box">
+          <div class="az-label">AZ us-east-1a</div>
+          <div class="row">
+            <div class="service">
+              <div class="icon">🌉</div>
+              <div class="name">Internet Gateway</div>
+              <div class="desc">VPC ingress/egress</div>
+            </div>
+            <div class="service">
+              <div class="icon">🔀</div>
+              <div class="name">ALB Node</div>
+              <div class="badge">ELB</div>
+              <div class="desc">Layer-7 load balancer</div>
+            </div>
+            <div class="service">
+              <div class="icon">📤</div>
+              <div class="name">NAT Gateway</div>
+              <div class="desc">Private subnet egress</div>
+            </div>
+          </div>
+        </div>
+        <div class="az-box">
+          <div class="az-label">AZ us-east-1b</div>
+          <div class="row">
+            <div class="service">
+              <div class="icon">🌉</div>
+              <div class="name">Internet Gateway</div>
+              <div class="desc">VPC ingress/egress</div>
+            </div>
+            <div class="service">
+              <div class="icon">🔀</div>
+              <div class="name">ALB Node</div>
+              <div class="badge">ELB</div>
+              <div class="desc">Layer-7 load balancer</div>
+            </div>
+            <div class="service">
+              <div class="icon">📤</div>
+              <div class="name">NAT Gateway</div>
+              <div class="desc">Private subnet egress</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:.8rem; color: var(--muted); font-size:.75rem;">
+        Security Group: ALB-SG → port 80/443 from 0.0.0.0/0
+      </div>
+    </div>
+
+    <div class="arrow-row">⬇ <span>ALB → EC2 (port 80 only)</span> ⬇</div>
+
+    <!-- PRIVATE LAYER – EC2 / ASG -->
+    <div class="layer layer-private">
+      <div class="layer-label">VPC – Private Subnets (10.0.3.0/24 &amp; 10.0.4.0/24) – Auto Scaling Group</div>
+      <div class="az-grid">
+        <div class="az-box">
+          <div class="az-label">AZ us-east-1a – EC2 Instances</div>
+          <div class="row">
+            <div class="service">
+              <div class="icon">🖥</div>
+              <div class="name">EC2 Instance</div>
+              <div class="badge">t3.micro</div>
+              <div class="desc">Apache + PHP app<br>CloudWatch Agent</div>
+            </div>
+            <div class="service">
+              <div class="icon">🖥</div>
+              <div class="name">EC2 Instance</div>
+              <div class="badge">t3.micro</div>
+              <div class="desc">Auto-scaled replica<br>IAM Instance Profile</div>
+            </div>
+          </div>
+        </div>
+        <div class="az-box">
+          <div class="az-label">AZ us-east-1b – EC2 Instances</div>
+          <div class="row">
+            <div class="service">
+              <div class="icon">🖥</div>
+              <div class="name">EC2 Instance</div>
+              <div class="badge">t3.micro</div>
+              <div class="desc">Apache + PHP app<br>CloudWatch Agent</div>
+            </div>
+            <div class="service">
+              <div class="icon">🖥</div>
+              <div class="name">EC2 Instance</div>
+              <div class="badge">t3.micro</div>
+              <div class="desc">Auto-scaled replica<br>IAM Instance Profile</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:1rem; text-align:center; color:var(--muted); font-size:.75rem;">
+        ASG: min=2 | desired=2 | max=6 · Scaling: CPU Target 60% · Security Group: EC2-SG → from ALB-SG only
+      </div>
+    </div>
+
+    <div class="arrow-row">⬇ <span>MySQL port 3306</span> ⬇</div>
+
+    <!-- DATA LAYER – RDS + S3 -->
+    <div class="layer layer-data">
+      <div class="layer-label">Data Layer – Private Subnets</div>
+      <div class="row">
+        <div class="service" style="max-width:200px">
+          <div class="icon">🗄</div>
+          <div class="name">RDS MySQL 8.0</div>
+          <div class="badge">Multi-AZ</div>
+          <div class="desc">Primary + Standby<br>Encrypted (AES-256)<br>7-day backups</div>
+        </div>
+        <div class="service" style="max-width:200px">
+          <div class="icon">🪣</div>
+          <div class="name">S3 Bucket</div>
+          <div class="badge">Private</div>
+          <div class="desc">App files & assets<br>Versioning enabled<br>Server-side encrypted</div>
+        </div>
+        <div class="service" style="max-width:200px">
+          <div class="icon">📂</div>
+          <div class="name">S3 Log Bucket</div>
+          <div class="badge">Private</div>
+          <div class="desc">ALB & S3 access logs<br>90-day lifecycle</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUPPORT LAYER – IAM, CloudWatch, GitHub -->
+    <div class="layer layer-support">
+      <div class="layer-label">Support Services</div>
+      <div class="row">
+        <div class="service">
+          <div class="icon">🔐</div>
+          <div class="name">IAM</div>
+          <div class="badge">Roles & Policies</div>
+          <div class="desc">EC2 role, RDS role<br>Least-privilege</div>
+        </div>
+        <div class="service">
+          <div class="icon">📊</div>
+          <div class="name">CloudWatch</div>
+          <div class="badge">Monitoring</div>
+          <div class="desc">Metrics, alarms<br>Dashboards & Logs</div>
+        </div>
+        <div class="service">
+          <div class="icon">🔔</div>
+          <div class="name">SNS</div>
+          <div class="badge">Alerts</div>
+          <div class="desc">Email notifications<br>for alarm triggers</div>
+        </div>
+        <div class="service">
+          <div class="icon">🔧</div>
+          <div class="name">Terraform</div>
+          <div class="badge">IaC</div>
+          <div class="desc">Infrastructure<br>as Code</div>
+        </div>
+        <div class="service">
+          <div class="icon">🐙</div>
+          <div class="name">GitHub</div>
+          <div class="badge">VCS</div>
+          <div class="desc">Version control<br>& collaboration</div>
+        </div>
+        <div class="service">
+          <div class="icon">💻</div>
+          <div class="name">SSM</div>
+          <div class="badge">Session Mgr</div>
+          <div class="desc">Secure shell access<br>no SSH/key pair needed</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /diagram -->
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#4a90d9"></div> Internet Layer</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--aws-orange)"></div> Public Subnet (ALB, IGW, NAT)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Private Subnet (App Servers)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> Data Layer (RDS, S3)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--muted)"></div> Support Services</div>
+  </div>
+
+  <!-- SERVICES TABLE -->
+  <table class="services-table">
+    <thead>
+      <tr>
+        <th>AWS Service</th>
+        <th>Role in Architecture</th>
+        <th>Rationale / Why it was chosen</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>🔀 Application Load Balancer (ALB)</td>
+        <td>Distributes HTTP/HTTPS traffic across EC2 instances</td>
+        <td>Layer-7 routing, health checks, SSL termination, sticky sessions</td>
+      </tr>
+      <tr>
+        <td>🖥 EC2 + Auto Scaling Group</td>
+        <td>Web server compute layer, scales to meet demand</td>
+        <td>Dynamic scaling by CPU & request count; auto-replace failed instances</td>
+      </tr>
+      <tr>
+        <td>🗄 RDS MySQL (Multi-AZ)</td>
+        <td>Relational database backend</td>
+        <td>Managed failover, automated backups, encrypted at rest</td>
+      </tr>
+      <tr>
+        <td>🪣 S3</td>
+        <td>Object storage for files, assets, and logs</td>
+        <td>Infinitely scalable, durable, versioned, encrypted at rest</td>
+      </tr>
+      <tr>
+        <td>🌐 VPC + Subnets</td>
+        <td>Network isolation; public subnets for ALB, private for EC2 & RDS</td>
+        <td>Defence-in-depth; minimise attack surface by keeping compute private</td>
+      </tr>
+      <tr>
+        <td>📤 NAT Gateway</td>
+        <td>Private subnet outbound internet access</td>
+        <td>Allows software updates without exposing EC2 to inbound internet</td>
+      </tr>
+      <tr>
+        <td>🔐 IAM</td>
+        <td>EC2 instance profile, RDS monitoring role, VPC Flow Log role</td>
+        <td>Least-privilege: granular policies per service, no root keys</td>
+      </tr>
+      <tr>
+        <td>📊 CloudWatch</td>
+        <td>Metrics, alarms, log groups, and dashboard</td>
+        <td>Central observability; SNS integration for proactive alerting</td>
+      </tr>
+      <tr>
+        <td>🔔 SNS</td>
+        <td>Email alarm notifications</td>
+        <td>Decoupled alerting; can fan out to email, SMS, Lambda</td>
+      </tr>
+      <tr>
+        <td>💻 SSM Session Manager</td>
+        <td>Secure shell access to EC2 (no open port 22)</td>
+        <td>Eliminates key management and reduces attack surface</td>
+      </tr>
+      <tr>
+        <td>🔧 Terraform</td>
+        <td>Infrastructure as Code</td>
+        <td>Repeatable, version-controlled, documented infrastructure</td>
+      </tr>
+      <tr>
+        <td>🐙 GitHub</td>
+        <td>Version control, collaboration, CI/CD readiness</td>
+        <td>Full audit trail, branching, pull-request workflow</td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+</html>
